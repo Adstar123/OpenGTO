@@ -12,13 +12,13 @@ OpenGTO uses deep learning to master preflop poker decisions with near-perfect a
 - ✅ Stack depth and bet sizing considerations  
 - ✅ Position-aware GTO strategy
 - 🎯 Target: 98.5%+ accuracy on preflop decisions
-- Acc currently at around 90% on robust model.
+- 🎯 Acc currently at around 90% on robust model.
 
 ## 🚀 Quick Start
 
 ### 1. Training (RTX 4080 Optimised)
 
-Train a massive GTO model on 500,000 scenarios:
+Train a massive GTO model on 50,000 scenarios:
 
 ```bash
 python scripts/train_robust.py
@@ -77,7 +77,7 @@ The system generates realistic poker scenarios by:
 - **Input Processing**: 32 features covering all GTO-relevant factors
 - **Architecture**: Deep network optimized for poker decision-making
 - **Loss Function**: Weighted cross-entropy for balanced learning
-- **Optimization**: AdamW with cosine annealing for stable convergence
+- **Optimisation**: AdamW with cosine annealing for stable convergence
 - **Validation**: Comprehensive testing on unseen scenarios
 
 ### 3. GTO Decision Making
