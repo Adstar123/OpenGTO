@@ -138,22 +138,22 @@ dropout_rate: 0.3
 
 ## Roadmap
 
-### Phase 1: Preflop (✅ Complete)
+### Phase 1: Preflop (mostly complete)
 - Neural network for preflop decisions
 - 90% accuracy on GTO strategy
 - CLI interface and testing suite
 
-### Phase 2: Simple Postflop (🔜 Next)
+### Phase 2: Simple Postflop (Next)
 - Flop texture analysis
 - Continuation betting strategies
 - Board representation features
 
-### Phase 3: Full Game (🔮 Future)
+### Phase 3: Full Game (Future)
 - Turn and river play
 - Multi-street planning
 - Opponent modeling
 
-### Phase 4: Desktop App (🎨 Future)
+### Phase 4: Desktop App (Future)
 - Electron + React frontend
 - Real-time training interface
 - Hand history analysis
