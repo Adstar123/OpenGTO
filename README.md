@@ -1,7 +1,5 @@
 # OpenGTO - Neural Network GTO Poker Trainer
 
-**Version 0.2.0** - Fully refactored with modular architecture
-
 A machine learning-based poker training system that learns Game Theory Optimal (GTO) strategies for Texas Hold'em. Currently focused on preflop play with plans to expand to full game coverage.
 
 ## Current State
