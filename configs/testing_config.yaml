@@ -1,0 +1,3 @@
+interactive_mode: true
+num_test_scenarios: 100
+show_examples: 20
