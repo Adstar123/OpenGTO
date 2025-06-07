@@ -165,7 +165,7 @@ class PreflopTrainer:
         """Create DataLoader from scenarios."""
         features = []
         labels = []
-        action_to_idx = {'fold': 0, 'call': 1, 'raise': 2}
+        action_to_idx = {'fold': 0, 'call': 1, 'raise': 2, 'check': 3}
         
         for sample in data:
             feature_tensor = self.model.features_to_tensor(sample['features'])
@@ -181,8 +181,8 @@ class PreflopTrainer:
     def _get_criterion(self, train_data: List[Dict]) -> nn.Module:
         """Get loss criterion with class balancing."""
         # Count actions
-        action_to_idx = {'fold': 0, 'call': 1, 'raise': 2}
-        action_counts = [0, 0, 0]
+        action_to_idx = {'fold': 0, 'call': 1, 'raise': 2, 'check': 3}
+        action_counts = [0, 0, 0, 0]
         
         for sample in train_data:
             action_idx = action_to_idx[sample['optimal_action']['action']]
@@ -191,7 +191,7 @@ class PreflopTrainer:
         # Calculate weights
         total_samples = sum(action_counts)
         class_weights = [
-            total_samples / (3 * count) if count > 0 else 1.0
+            total_samples / (4 * count) if count > 0 else 1.0
             for count in action_counts
         ]
         
@@ -242,9 +242,9 @@ class PreflopTrainer:
         total = 0
         
         # Track per-action accuracy
-        action_correct = {'fold': 0, 'call': 0, 'raise': 0}
-        action_total = {'fold': 0, 'call': 0, 'raise': 0}
-        action_names = ['fold', 'call', 'raise']
+        action_correct = {'fold': 0, 'call': 0, 'raise': 0, 'check': 0}
+        action_total = {'fold': 0, 'call': 0, 'raise': 0, 'check': 0}
+        action_names = ['fold', 'call', 'raise', 'check']
         
         with torch.no_grad():
             for batch_features, batch_labels in loader:

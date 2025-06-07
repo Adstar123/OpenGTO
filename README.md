@@ -87,9 +87,9 @@ OpenGTO/
 ## Technical Architecture
 
 ### Neural Network
-- **Architecture**: Feed-forward network (128→64→32→3)
+- **Architecture**: Feed-forward network (128→64→32→4)
 - **Input**: 20 features (position, cards, game context)
-- **Output**: Action probabilities (fold/call/raise)
+- **Output**: Action probabilities (fold/call/raise/check)
 - **Training**: Balanced dataset of 15,000 scenarios
 
 ### Key Components

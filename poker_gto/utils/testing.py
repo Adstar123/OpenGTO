@@ -33,7 +33,7 @@ class ModelTester:
         """
         self.logger.info(f"\nTesting model on {num_tests} scenarios...")
         
-        predictions = {'fold': 0, 'call': 0, 'raise': 0}
+        predictions = {'fold': 0, 'call': 0, 'raise': 0, 'check': 0}
         correct_predictions = 0
         
         print("\nSample predictions:")
@@ -62,7 +62,15 @@ class ModelTester:
             if i < show_examples:
                 position = context['position']
                 hand = context['hole_cards']
-                situation = "Facing Raise" if context['facing_raise'] else "Opening"
+                
+                # Determine situation string
+                if context['position'] == 'BB' and context['bet_to_call'] == 0.0 and not context['facing_raise']:
+                    situation = "vs Limp"
+                elif context['facing_raise']:
+                    situation = "Facing Raise"
+                else:
+                    situation = "Opening"
+                
                 match_str = "✓" if is_correct else "✗"
                 size_str = f"{predicted_size:.1f}" if predicted_action == 'raise' else "-"
                 
@@ -79,9 +87,16 @@ class ModelTester:
         total_predictions = sum(predictions.values())
         
         if min_predictions == 0:
-            print("  ⚠️  WARNING: Model is NOT making diverse predictions!")
-            return False
-        elif min_predictions < total_predictions * 0.05:
+            # Check is often rare, so don't require it
+            non_check_predictions = {k: v for k, v in predictions.items() if k != 'check'}
+            min_non_check = min(non_check_predictions.values())
+            if min_non_check == 0:
+                print("  ⚠️  WARNING: Model is NOT making diverse predictions!")
+                return False
+            else:
+                print("  ✅ Model is making reasonably diverse predictions!")
+                return True
+        elif min_predictions < total_predictions * 0.02:  # Lower threshold for check
             print("  ⚠️  Model predictions are imbalanced but functional.")
             return True
         else:
@@ -115,13 +130,25 @@ class ModelTester:
                     break
                 
                 # Get situation
-                situation = input("Situation (open/vs_raise) [default: open]: ").strip().lower()
+                situation = input("Situation (open/vs_raise/vs_limp) [default: open]: ").strip().lower()
                 if situation in ['quit', 'q']:
                     break
                 if situation == '':
                     situation = 'open'
                 
-                facing_raise = situation == 'vs_raise'
+                # Set up scenario based on situation
+                if situation == 'vs_raise':
+                    facing_raise = True
+                    pot_size = 3.5
+                    bet_to_call = 3.0
+                elif situation == 'vs_limp' and position_input == 'BB':
+                    facing_raise = False
+                    pot_size = 2.0  # SB completed
+                    bet_to_call = 0.0
+                else:  # open
+                    facing_raise = False
+                    pot_size = 1.5
+                    bet_to_call = 0.0
                 
                 # Create scenario
                 scenario_data = {
@@ -129,8 +156,8 @@ class ModelTester:
                     'hole_cards': hand,
                     'player_count': 6,
                     'facing_raise': facing_raise,
-                    'pot_size': 3.5 if facing_raise else 1.5,
-                    'bet_to_call': 3.0 if facing_raise else 0.0,
+                    'pot_size': pot_size,
+                    'bet_to_call': bet_to_call,
                     'stack_ratio': 1.0,
                     'num_players': 6,
                 }
@@ -150,7 +177,16 @@ class ModelTester:
                 print(f"{'='*40}")
                 print(f"Position: {position_input}")
                 print(f"Hand: {hand}")
-                print(f"Situation: {'Facing a raise' if facing_raise else 'First to act'}")
+                
+                # Format situation description
+                if situation == 'vs_limp' and position_input == 'BB':
+                    situation_desc = 'Facing a limp (can check or raise)'
+                elif facing_raise:
+                    situation_desc = 'Facing a raise'
+                else:
+                    situation_desc = 'First to act'
+                
+                print(f"Situation: {situation_desc}")
                 print(f"\nRecommended Action: {action.upper()}")
                 if action == 'raise':
                     print(f"Raise Size: {size:.1f} BB")
@@ -159,6 +195,7 @@ class ModelTester:
                 print(f"  Fold:  {probs['fold']:.1%}")
                 print(f"  Call:  {probs['call']:.1%}")
                 print(f"  Raise: {probs['raise']:.1%}")
+                print(f"  Check: {probs['check']:.1%}")
                 
             except KeyboardInterrupt:
                 print("\n\nGoodbye!")

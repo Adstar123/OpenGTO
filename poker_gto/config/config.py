@@ -135,7 +135,7 @@ class ConfigManager:
             "input_size": 20,
             "hidden_sizes": [128, 64, 32],
             "dropout_rate": 0.3,
-            "output_size": 3
+            "output_size": 4
         }
         
         with open(base_dir / "model_config.yaml", 'w') as f:

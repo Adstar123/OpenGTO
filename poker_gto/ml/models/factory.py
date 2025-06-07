@@ -28,6 +28,7 @@ class ModelFactory:
             'input_size': 20,
             'hidden_sizes': [128, 64, 32],
             'dropout_rate': 0.3,
+            'output_size': 4,  # fold, call, raise, check
         }
     }
     

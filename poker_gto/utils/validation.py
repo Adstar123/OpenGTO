@@ -183,7 +183,7 @@ class DataValidator:
         
         if 'action' not in action:
             errors.append("Action dictionary missing 'action' field")
-        elif action['action'] not in ['fold', 'call', 'raise']:
+        elif action['action'] not in ['fold', 'call', 'raise', 'check']:
             errors.append(f"Invalid action: {action['action']}")
         
         if 'size' in action:

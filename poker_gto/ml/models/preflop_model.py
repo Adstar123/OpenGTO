@@ -14,7 +14,7 @@ class ModelConfig:
     input_size: int = 20
     hidden_sizes: List[int] = None
     dropout_rate: float = 0.3
-    output_size: int = 3  # fold, call, raise
+    output_size: int = 4  # fold, call, raise, check
     
     def __post_init__(self):
         if self.hidden_sizes is None:
@@ -25,7 +25,7 @@ class PreflopGTOModel(nn.Module):
     """Neural network for preflop poker decisions.
     
     This model takes poker game state features and outputs
-    action probabilities (fold, call, raise).
+    action probabilities (fold, call, raise, check).
     
     Attributes:
         config: Model configuration
@@ -96,7 +96,7 @@ class PreflopGTOModel(nn.Module):
             x: Input tensor of shape (batch_size, input_size)
             
         Returns:
-            Output tensor of shape (batch_size, 3) with action logits
+            Output tensor of shape (batch_size, 4) with action logits
         """
         return self.network(x)
     
@@ -108,7 +108,7 @@ class PreflopGTOModel(nn.Module):
             
         Returns:
             Tuple of (action_name, raise_size)
-            where action_name is 'fold', 'call', or 'raise'
+            where action_name is 'fold', 'call', 'raise', or 'check'
             and raise_size is bet size in BB (0.0 for non-raise actions)
         """
         self.eval()
@@ -127,7 +127,7 @@ class PreflopGTOModel(nn.Module):
             
             # Get predicted action
             action_idx = torch.argmax(probs, dim=1).item()
-            action_names = ['fold', 'call', 'raise']
+            action_names = ['fold', 'call', 'raise', 'check']
             predicted_action = action_names[action_idx]
             
             # Determine raise size if raising
@@ -189,7 +189,8 @@ class PreflopGTOModel(nn.Module):
             return {
                 'fold': probs[0].item(),
                 'call': probs[1].item(),
-                'raise': probs[2].item()
+                'raise': probs[2].item(),
+                'check': probs[3].item()
             }
     
     def save(self, filepath: str, metadata: Optional[Dict] = None):
@@ -221,10 +222,40 @@ class PreflopGTOModel(nn.Module):
         checkpoint = torch.load(filepath, map_location=map_location)
         
         # Reconstruct config
-        config = ModelConfig(**checkpoint.get('model_config', {}))
+        config_dict = checkpoint.get('model_config', {})
+        # Handle old models with 3 outputs
+        if 'output_size' not in config_dict or config_dict['output_size'] == 3:
+            config_dict['output_size'] = 4
+            
+        config = ModelConfig(**config_dict)
         
         # Create model and load weights
         model = cls(config)
-        model.load_state_dict(checkpoint['model_state_dict'])
+        
+        # Handle old models with different output sizes
+        state_dict = checkpoint['model_state_dict']
+        model_state = model.state_dict()
+        
+        # Check if we need to adapt the final layer
+        for key in state_dict:
+            if 'weight' in key and key in model_state:
+                if state_dict[key].shape != model_state[key].shape:
+                    # Old model with 3 outputs, new model with 4
+                    if state_dict[key].shape[0] == 3 and model_state[key].shape[0] == 4:
+                        # Initialize new weights preserving old ones
+                        new_weight = model_state[key].clone()
+                        new_weight[:3] = state_dict[key]
+                        state_dict[key] = new_weight
+                    elif 'bias' not in key:
+                        # For other layers, sizes should match
+                        state_dict[key] = model_state[key]
+            elif 'bias' in key and key in model_state:
+                if state_dict[key].shape != model_state[key].shape:
+                    if state_dict[key].shape[0] == 3 and model_state[key].shape[0] == 4:
+                        new_bias = model_state[key].clone()
+                        new_bias[:3] = state_dict[key]
+                        state_dict[key] = new_bias
+        
+        model.load_state_dict(state_dict, strict=False)
         
         return model

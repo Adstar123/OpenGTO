@@ -37,7 +37,7 @@ class PreflopScenarioGenerator:
     def generate_balanced_scenarios(self, num_scenarios: int) -> List[Dict]:
         """Generate balanced training scenarios.
         
-        Ensures equal distribution of fold/call/raise actions.
+        Ensures reasonable distribution of fold/call/raise/check actions.
         
         Args:
             num_scenarios: Total number of scenarios to generate
@@ -45,13 +45,15 @@ class PreflopScenarioGenerator:
         Returns:
             List of scenario dictionaries
         """
-        scenarios_per_action = num_scenarios // 3
+        # Adjust target distribution to include check
+        scenarios_per_action = num_scenarios // 4
         target_counts = {
             'fold': scenarios_per_action,
             'call': scenarios_per_action,
-            'raise': scenarios_per_action
+            'raise': scenarios_per_action,
+            'check': scenarios_per_action
         }
-        generated_counts = {'fold': 0, 'call': 0, 'raise': 0}
+        generated_counts = {'fold': 0, 'call': 0, 'raise': 0, 'check': 0}
         
         scenarios = []
         max_attempts = num_scenarios * 50
@@ -71,6 +73,14 @@ class PreflopScenarioGenerator:
             if generated_counts[action] < target_counts[action]:
                 scenarios.append(scenario)
                 generated_counts[action] += 1
+        
+        # If we couldn't generate enough check scenarios, fill with others
+        remaining = num_scenarios - len(scenarios)
+        if remaining > 0:
+            for _ in range(remaining):
+                scenario = self.generate_single_scenario()
+                if scenario:
+                    scenarios.append(scenario)
         
         return scenarios
     
@@ -100,10 +110,28 @@ class PreflopScenarioGenerator:
         if not player or not player.hole_cards:
             return None
         
-        # Generate context
-        facing_raise = random.choice([True, False])
-        pot_size = 3.5 if facing_raise else 1.5
-        bet_to_call = 3.0 if facing_raise else 0.0
+        # Generate different scenarios
+        scenario_type = random.choice(['open', 'vs_raise', 'vs_limp'])
+        
+        if scenario_type == 'open':
+            facing_raise = False
+            pot_size = 1.5
+            bet_to_call = 0.0
+        elif scenario_type == 'vs_raise':
+            facing_raise = True
+            pot_size = 3.5
+            bet_to_call = 3.0
+        else:  # vs_limp - only valid for BB
+            if position != Position.BIG_BLIND:
+                # If not BB, generate a different scenario
+                facing_raise = random.choice([True, False])
+                pot_size = 3.5 if facing_raise else 1.5
+                bet_to_call = 3.0 if facing_raise else 0.0
+            else:
+                # BB facing a limp
+                facing_raise = False
+                pot_size = 2.0  # SB completed
+                bet_to_call = 0.0  # No additional bet to call
         
         # Create scenario data
         scenario_data = {
@@ -125,7 +153,9 @@ class PreflopScenarioGenerator:
         optimal_action = self._determine_optimal_action(
             features,
             position,
-            facing_raise
+            facing_raise,
+            bet_to_call,
+            pot_size
         )
         
         return {
@@ -138,7 +168,9 @@ class PreflopScenarioGenerator:
         self,
         features: Dict[str, float],
         position: Position,
-        facing_raise: bool
+        facing_raise: bool,
+        bet_to_call: float,
+        pot_size: float
     ) -> Dict:
         """Determine optimal action based on simplified GTO logic.
         
@@ -146,6 +178,8 @@ class PreflopScenarioGenerator:
             features: Extracted features
             position: Player position
             facing_raise: Whether facing a raise
+            bet_to_call: Amount to call
+            pot_size: Current pot size
             
         Returns:
             Dictionary with 'action' and 'size'
@@ -153,7 +187,17 @@ class PreflopScenarioGenerator:
         hand_strength = features.get('hand_strength', 0.5)
         position_strength = features.get('position_strength', 0.5)
         
-        if facing_raise:
+        # Special case: BB facing a limp (can check)
+        if position == Position.BIG_BLIND and not facing_raise and bet_to_call == 0.0:
+            # BB can check with weak hands or raise with strong hands
+            if hand_strength < 0.3:
+                action = 'check'
+            elif hand_strength > 0.7:
+                action = 'raise'
+            else:
+                # Mixed strategy for medium hands
+                action = 'check' if random.random() < 0.6 else 'raise'
+        elif facing_raise:
             # Facing a raise - tighter ranges
             if hand_strength > 0.8:  # Premium hands
                 action = 'raise' if random.random() < 0.6 else 'call'
@@ -166,8 +210,6 @@ class PreflopScenarioGenerator:
             threshold = 0.7 - (position_strength * 0.4)
             if hand_strength > threshold:
                 action = 'raise'
-            elif hand_strength > 0.3 and position == Position.BIG_BLIND:
-                action = 'call'  # BB can complete
             else:
                 action = 'fold'
         
