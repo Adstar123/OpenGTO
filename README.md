@@ -5,11 +5,9 @@ A machine learning-based poker training system that learns Game Theory Optimal (
 ## Current State
 
 ### What's Working
-- **Complete modular architecture** - Clean separation of concerns
 - **Preflop neural network** - ~90% accuracy on GTO decisions
 - **CLI interface** - Professional command-line tool
 - **Configuration system** - YAML-based configs
-- **Testing suite** - Comprehensive unit tests
 - **Performance monitoring** - Built-in benchmarking
 - **Data validation** - Automatic quality checks
 
@@ -60,28 +58,6 @@ python -m poker_gto.cli test models/your_model.pth
 #### 3. Benchmark Performance
 ```bash
 python -m poker_gto.cli benchmark models/your_model.pth
-```
-
-## Project Structure
-
-```
-OpenGTO/
-├── poker_gto/              # Main package
-│   ├── core/              # Game logic (poker rules, game state)
-│   ├── ml/                # Machine learning components
-│   │   ├── models/        # Neural network architectures
-│   │   ├── features/      # Feature extraction
-│   │   ├── data/          # Data generation
-│   │   └── training/      # Training utilities
-│   ├── config/            # Configuration management
-│   ├── utils/             # Utilities (logging, validation, testing)
-│   └── cli.py             # Command-line interface
-├── configs/               # YAML configuration files
-├── scripts/               # Entry point scripts
-├── tests/                 # Unit tests
-├── models/                # Saved models
-├── logs/                  # Training logs
-└── data/                  # Data storage (future use)
 ```
 
 ## Technical Architecture
