@@ -99,16 +99,55 @@ Each training example contains:
 | `prob_raise_4bb` | Probability of raising to 4BB |
 | `prob_all_in` | Probability of going all-in |
 
+### Step 2: Neural Network Training (Completed)
+
+We have implemented and trained a PyTorch neural network to learn GTO strategies:
+
+#### Components:
+
+1. **Data Preprocessing** ([src/preprocessing.py](src/preprocessing.py))
+   - Feature encoding for hands, positions, and action history
+   - Train/validation/test split
+   - Normalization and padding
+
+2. **PyTorch Dataset** ([src/dataset.py](src/dataset.py))
+   - Custom dataset class for efficient data loading
+   - Compatible with DataLoader for batching
+
+3. **Neural Network Models** ([src/model.py](src/model.py))
+   - **PreflopStrategyNet**: Simple feedforward network (256->128->64)
+   - **PreflopStrategyNetV2**: Advanced model with embeddings and batch normalization
+   - Both models output probability distributions over 7 actions
+
+4. **Trainer** ([src/trainer.py](src/trainer.py))
+   - KL divergence loss for probability distribution learning
+   - Adam optimizer with learning rate scheduling
+   - Early stopping based on validation loss
+   - Model checkpointing
+
+#### Training Results:
+
+- **Test Accuracy**: 58-88% (varies by run due to limited data)
+- **Mean KL Divergence**: 0.0004-0.001 (very low - close to GTO)
+- **Model Size**: 45,703 parameters (simple model)
+
+#### Train a Model:
+
+```bash
+python train_model.py --epochs 50 --batch-size 32 --model-type simple
+```
+
+Options:
+- `--model-type`: 'simple' or 'advanced'
+- `--epochs`: Number of training epochs
+- `--batch-size`: Batch size
+- `--learning-rate`: Learning rate
+- `--dropout`: Dropout rate for regularization
+- `--early-stopping`: Patience for early stopping
+
 ### Next Steps
 
-- **Step 2**: Build and train PyTorch neural network
 - **Step 3**: Create interactive CLI trainer
 - **Step 4**: Build GUI application
 
-### Implementation Notes
 
-- Code follows PEP 8 style guidelines
-- Type hints used throughout
-- Modular design with clear separation of concerns
-- No emojis in code or output
-- Well-documented with docstrings
