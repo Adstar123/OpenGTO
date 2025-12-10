@@ -8,9 +8,9 @@ OpenGTO
 How to play:
 
 When you run python play.py, you'll see:
-==================================================
+
 STACK: 100bb | POSITION: BTN
-==================================================
+
 
 Your hand: [Ac] [Kc] (AKs)
 
