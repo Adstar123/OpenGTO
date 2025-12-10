@@ -212,6 +212,12 @@ class GTOTrainer:
 
     def _training_step(self) -> Dict[str, float]:
         """Run one training iteration."""
+        import sys
+
+        # Show iteration start
+        elapsed = time.time() - self.training_start_time if self.training_start_time else 0
+        print(f"\r[{elapsed:.0f}s] Iter {self.iteration}: Collecting samples...", end="", flush=True)
+
         # Get strategy function
         def strategy_fn(features, legal_mask):
             return self.networks.get_strategy(features, legal_mask)
@@ -225,6 +231,8 @@ class GTOTrainer:
 
         self.total_traversals += self.config.traversals_per_iter
 
+        print(f"\r[{elapsed:.0f}s] Iter {self.iteration}: Adding {len(regret_samples)} samples to memory...", end="", flush=True)
+
         # Add to memory
         for features, regrets, mask, iter_num in regret_samples:
             self.memory.add_regret_sample(features, regrets, mask, iter_num)
@@ -237,14 +245,21 @@ class GTOTrainer:
         strategy_loss = 0.0
 
         if len(self.memory.regret_buffer) >= self.config.batch_size:
-            for _ in range(self.config.train_steps_per_iter):
+            print(f"\r[{elapsed:.0f}s] Iter {self.iteration}: Training networks ({self.config.train_steps_per_iter} steps)...", end="", flush=True)
+            for step in range(self.config.train_steps_per_iter):
                 rl = self._train_regret_network()
                 sl = self._train_strategy_network()
                 regret_loss += rl
                 strategy_loss += sl
+                # Show progress every 20 steps
+                if (step + 1) % 20 == 0:
+                    print(f"\r[{time.time() - self.training_start_time:.0f}s] Iter {self.iteration}: Training step {step+1}/{self.config.train_steps_per_iter}...", end="", flush=True)
 
             regret_loss /= self.config.train_steps_per_iter
             strategy_loss /= self.config.train_steps_per_iter
+
+        # Clear the line
+        print(f"\r[{time.time() - self.training_start_time:.0f}s] Iter {self.iteration}: Done (loss: {regret_loss:.4f})          ", end="", flush=True)
 
         self.stats.add_regret_loss(regret_loss)
         self.stats.add_strategy_loss(strategy_loss)
