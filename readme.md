@@ -35,7 +35,8 @@ set pos BTN - Only train from Button
 set hand AKs - Only train AKs hands
 quit - Exit and save stats
 After each decision, you'll see GTO feedback:
---------------------------------------------------
+
+
 CORRECT!
 
 Good! Raise is acceptable. GTO prefers All-In (79%) but Raise (18%) is fine.
@@ -45,5 +46,6 @@ GTO Strategy:
   Raise    [#####-------------------------]  17.5%
   Call     [------------------------------]   3.1%
   Fold     [------------------------------]   0.4%
---------------------------------------------------
+
+
 Your statistics are automatically saved to user_stats.json and tracked across sessions!
