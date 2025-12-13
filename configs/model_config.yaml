@@ -1,0 +1,7 @@
+dropout_rate: 0.3
+hidden_sizes:
+- 128
+- 64
+- 32
+input_size: 20
+output_size: 3

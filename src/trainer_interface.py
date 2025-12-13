@@ -329,6 +329,7 @@ class GTOTrainerInterface:
         else:
             # Generate random action history up to hero
             # First, decide if there will be a raise and from which position
+            raise_position = None
             raise_happened = False
 
             for pos in preflop_order:
