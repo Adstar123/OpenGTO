@@ -2,7 +2,7 @@ OpenGTO
 
 1. to train: python train_improved.py
 2. to play: python play.py
-3. to play based off a checkpoint: python play.py checkpoints/gto_trainer_final.pt
+3. to play based off a checkpoint: python play.py checkpoints_improved/gto_trainer_final.pt
 4. to query a specific hand: python trainer_cli.py query checkpoints/gto_trainer_final.pt --hand AKs --position BTN
 
 How to play:
