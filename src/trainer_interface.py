@@ -193,21 +193,30 @@ class GTOTrainerInterface:
 
         print(f"Loading model from {self.checkpoint_path}...")
 
+        # First load checkpoint to get config
+        checkpoint = torch.load(self.checkpoint_path, map_location=self.device)
+
+        # Get config from checkpoint if available
+        config = checkpoint.get('config', {})
+        hidden_sizes = config.get('hidden_sizes', (256, 256, 128))
+        self.num_players = config.get('num_players', self.num_players)
+
+        # Convert list to tuple if needed (JSON doesn't preserve tuples)
+        if isinstance(hidden_sizes, list):
+            hidden_sizes = tuple(hidden_sizes)
+
+        print(f"  Network architecture: {hidden_sizes}")
+
         input_size = InformationSet.feature_size()
         self.networks = DeepCFRNetworks(
             input_size=input_size,
-            hidden_sizes=(256, 256, 128),
+            hidden_sizes=hidden_sizes,
             num_actions=NUM_ACTIONS,
             device=self.device
         )
 
-        checkpoint = torch.load(self.checkpoint_path, map_location=self.device)
         self.networks.regret_net.load_state_dict(checkpoint['networks']['regret_net'])
         self.networks.avg_strategy_net.load_state_dict(checkpoint['networks']['avg_strategy_net'])
-
-        # Get config from checkpoint if available
-        config = checkpoint.get('config', {})
-        self.num_players = config.get('num_players', self.num_players)
 
         self.engine = PreflopPokerEngine(
             num_players=self.num_players,
