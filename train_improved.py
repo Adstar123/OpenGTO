@@ -174,12 +174,37 @@ def main():
         checkpoint_dir='checkpoints_improved',
     )
 
-    # Create trainer with improved curriculum
+    # Create trainer
     trainer = GTOTrainer(config)
+
+    # Set the improved curriculum BEFORE loading checkpoint
     trainer.curriculum = create_improved_curriculum()
 
     if args.resume:
         trainer.load_checkpoint(args.resume)
+
+        # Re-apply the improved curriculum (load_checkpoint may have used default)
+        # Keep the iteration count but recalculate which stage we should be in
+        saved_iteration = trainer.iteration
+        trainer.curriculum = create_improved_curriculum()
+
+        # Calculate which stage we should be in based on iteration count
+        cumulative = 0
+        for idx, stage in enumerate(trainer.curriculum.stages):
+            if cumulative + stage.iterations > saved_iteration:
+                trainer.curriculum.current_stage_idx = idx
+                trainer.curriculum.stage_iterations = saved_iteration - cumulative
+                break
+            cumulative += stage.iterations
+        else:
+            # Past all stages
+            trainer.curriculum.current_stage_idx = len(trainer.curriculum.stages) - 1
+            trainer.curriculum.stage_iterations = trainer.curriculum.stages[-1].iterations
+
+        trainer.curriculum.total_iterations = saved_iteration
+        trainer._update_engine_for_curriculum()
+
+        print(f"  Applied improved curriculum: {trainer.curriculum.get_summary()}")
 
     # Calculate total iterations (from curriculum)
     total_curriculum_iters = sum(s.iterations for s in trainer.curriculum.stages)
