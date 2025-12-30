@@ -19,9 +19,9 @@ const SUIT_SYMBOLS: Record<string, string> = {
 
 const SUIT_COLORS: Record<string, string> = {
   spades: '#1c1c1e',
-  hearts: '#ff453a',
-  diamonds: '#0a84ff',
-  clubs: '#32d74b',
+  hearts: '#dc2626',
+  diamonds: '#dc2626',
+  clubs: '#1c1c1e',
 }
 
 const PlayingCard: React.FC<PlayingCardProps> = ({

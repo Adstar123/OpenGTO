@@ -44,22 +44,25 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
   const actionColor = action ? ACTION_COLORS[action.action] : undefined
 
   return (
-    <motion.div
-      className={`player-seat ${isHero ? 'hero' : ''} ${action?.action === 'fold' ? 'folded' : ''}`}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        type: 'spring',
-        stiffness: 200,
-        damping: 20,
-        delay: delay,
-      }}
+    <div
+      className="player-seat-wrapper"
       style={{
         left: `calc(50% + ${offsetX}%)`,
         top: `calc(50% + ${offsetY}%)`,
       }}
     >
-      <div className="seat-content">
+      <motion.div
+        className={`player-seat ${isHero ? 'hero' : ''} ${action?.action === 'fold' ? 'folded' : ''}`}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          type: 'spring',
+          stiffness: 200,
+          damping: 20,
+          delay: delay,
+        }}
+      >
+        <div className="seat-content">
         {/* Position badge */}
         <div className={`position-badge ${isHero ? 'hero' : ''}`}>
           <Icon path={mdiAccountCircle} size={0.6} color={isHero ? 'var(--accent-primary)' : 'var(--text-muted)'} />
@@ -110,22 +113,25 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
       </div>
 
       <style>{`
-        .player-seat {
+        .player-seat-wrapper {
           position: absolute;
           transform: translate(-50%, -50%);
+          z-index: 30;
+        }
+
+        .player-seat-wrapper:has(.hero) {
+          z-index: 40;
+        }
+
+        .player-seat {
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 4px;
-          z-index: 30;
         }
 
         .player-seat.folded {
           opacity: 0.4;
-        }
-
-        .player-seat.hero {
-          z-index: 40;
         }
 
         .seat-content {
@@ -193,7 +199,8 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
           letter-spacing: 0.06em;
         }
       `}</style>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
 
