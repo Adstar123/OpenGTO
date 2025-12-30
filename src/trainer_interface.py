@@ -184,7 +184,11 @@ class GTOTrainerInterface:
 
         # Settings
         self.stack_size = 100.0
-        self.positions_to_train: List[Position] = list(Position)[:num_players]
+        # Exclude BB from random scenarios - SB action display is incomplete
+        # which makes BB scenarios confusing to evaluate
+        # Positions: UTG, HJ, CO, BTN, SB (no BB)
+        all_positions = list(Position)[:num_players]
+        self.positions_to_train: List[Position] = [p for p in all_positions if p != Position.BB]
         self.hand_filter: Optional[List[str]] = None  # None = all hands
 
     def load_model(self):
