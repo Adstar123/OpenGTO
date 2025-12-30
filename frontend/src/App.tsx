@@ -6,7 +6,7 @@ import ActionPanel from './components/ActionPanel'
 import ResultModal from './components/ResultModal'
 import StatsPanel from './components/StatsPanel'
 import { Scenario, TrainerResult, ActionType, UserStats } from './types'
-import { generateMockScenario, evaluateAction } from './hooks/useTrainer'
+import { fetchScenario, submitAction } from './hooks/useTrainer'
 
 const App: React.FC = () => {
   const [scenario, setScenario] = useState<Scenario | null>(null)
@@ -27,7 +27,7 @@ const App: React.FC = () => {
 
     await new Promise((resolve) => setTimeout(resolve, 250))
 
-    const newScenario = generateMockScenario()
+    const newScenario = await fetchScenario()
     setScenario(newScenario)
     setIsAnimating(false)
   }
@@ -37,7 +37,7 @@ const App: React.FC = () => {
 
     setIsAnimating(true)
 
-    const evalResult = evaluateAction(scenario, action)
+    const evalResult = await submitAction(scenario, action)
     setResult(evalResult)
 
     setStats((prev) => {

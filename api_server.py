@@ -71,17 +71,18 @@ def get_scenario():
     try:
         t = get_trainer()
         scenario = t.generate_random_scenario()
+        t._current_scenario = scenario  # Store for evaluate endpoint
 
         # Convert to JSON-serializable format
         response = {
             'heroPosition': scenario.hero_position.name,
             'heroCards': {
                 'card1': {
-                    'rank': scenario.hero_hand.card1.rank.symbol,
+                    'rank': str(scenario.hero_hand.card1.rank),
                     'suit': scenario.hero_hand.card1.suit.name.lower(),
                 },
                 'card2': {
-                    'rank': scenario.hero_hand.card2.rank.symbol,
+                    'rank': str(scenario.hero_hand.card2.rank),
                     'suit': scenario.hero_hand.card2.suit.name.lower(),
                 },
                 'handType': scenario.hero_hand.hand_type_string(),
@@ -184,11 +185,11 @@ def new_scenario():
             'heroPosition': scenario.hero_position.name,
             'heroCards': {
                 'card1': {
-                    'rank': scenario.hero_hand.card1.rank.symbol,
+                    'rank': str(scenario.hero_hand.card1.rank),
                     'suit': scenario.hero_hand.card1.suit.name.lower(),
                 },
                 'card2': {
-                    'rank': scenario.hero_hand.card2.rank.symbol,
+                    'rank': str(scenario.hero_hand.card2.rank),
                     'suit': scenario.hero_hand.card2.suit.name.lower(),
                 },
                 'handType': scenario.hero_hand.hand_type_string(),

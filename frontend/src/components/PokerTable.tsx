@@ -42,22 +42,6 @@ const PokerTable: React.FC<PokerTableProps> = ({ scenario, isAnimating }) => {
     return mapping
   }, [scenario?.heroPosition])
 
-  // DEBUG: Log positioning info
-  useEffect(() => {
-    console.log('=== POKER TABLE DEBUG ===')
-    console.log('VISUAL_POSITIONS:', VISUAL_POSITIONS)
-    console.log('Position mapping:', positionMapping)
-    if (scenario && Object.keys(positionMapping).length > 0) {
-      console.log('Hero position:', scenario.heroPosition)
-      ALL_POSITIONS.forEach((pos) => {
-        const mapping = positionMapping as Record<Position, number>
-        const visualSlot = mapping[pos] ?? 0
-        const visualPos = VISUAL_POSITIONS[visualSlot]
-        console.log(`${pos}: slot=${visualSlot}, x=${visualPos?.x}, y=${visualPos?.y}, left=calc(50% + ${visualPos?.x}%)`)
-      })
-    }
-  }, [scenario, positionMapping])
-
   // Animate actions sequentially
   useEffect(() => {
     if (!scenario) {
@@ -97,8 +81,6 @@ const PokerTable: React.FC<PokerTableProps> = ({ scenario, isAnimating }) => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* DEBUG: Center crosshair marker */}
-        <div className="debug-center-marker" />
         {/* Table felt */}
         <div className="table-felt">
           <div className="felt-texture" />
@@ -183,8 +165,6 @@ const PokerTable: React.FC<PokerTableProps> = ({ scenario, isAnimating }) => {
           position: relative;
           min-height: 0;
           overflow: visible;
-          /* DEBUG: Blue border to see container boundaries */
-          outline: 2px dashed blue;
         }
 
         .ambient-bg {
@@ -202,42 +182,6 @@ const PokerTable: React.FC<PokerTableProps> = ({ scenario, isAnimating }) => {
           width: 550px;
           height: 340px;
           flex-shrink: 0;
-          /* DEBUG: Red border to see table boundaries */
-          outline: 2px dashed red;
-        }
-
-        /* DEBUG: Center crosshair marker */
-        .debug-center-marker {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          width: 20px;
-          height: 20px;
-          transform: translate(-50%, -50%);
-          background: yellow;
-          border: 2px solid red;
-          border-radius: 50%;
-          z-index: 9999;
-        }
-        .debug-center-marker::before,
-        .debug-center-marker::after {
-          content: '';
-          position: absolute;
-          background: red;
-        }
-        .debug-center-marker::before {
-          left: 50%;
-          top: -20px;
-          bottom: -20px;
-          width: 2px;
-          transform: translateX(-50%);
-        }
-        .debug-center-marker::after {
-          top: 50%;
-          left: -20px;
-          right: -20px;
-          height: 2px;
-          transform: translateY(-50%);
         }
 
         .table-felt {
