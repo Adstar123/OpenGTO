@@ -98,7 +98,7 @@ def get_scenario():
                 }
                 for action in scenario.villain_actions
             ],
-            'legalActions': scenario.legal_actions,
+            'legalActions': [a.lower() for a in scenario.legal_actions],
             'players': [
                 {
                     'position': pos.name,
@@ -159,7 +159,7 @@ def evaluate_action():
                 'raise': float(gto_probs.get('Raise', 0)),
                 'allIn': float(gto_probs.get('All-In', 0)),
             },
-            'isCorrect': was_correct,
+            'isCorrect': bool(was_correct),
             'feedback': feedback,
         }
 
