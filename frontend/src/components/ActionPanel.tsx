@@ -52,7 +52,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   scenario,
   onAction,
   disabled,
-  result,
+  result: _result,
 }) => {
   const legalActions = scenario?.legalActions || []
 

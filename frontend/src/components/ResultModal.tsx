@@ -2,7 +2,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import Icon from '@mdi/react'
 import { mdiCheck, mdiClose, mdiArrowRight } from '@mdi/js'
-import { TrainerResult, Scenario, GTOStrategy } from '../types'
+import { TrainerResult, Scenario } from '../types'
 
 interface ResultModalProps {
   result: TrainerResult
@@ -29,7 +29,7 @@ const ACTION_COLORS: Record<string, string> = {
 
 const ResultModal: React.FC<ResultModalProps> = ({
   result,
-  scenario,
+  scenario: _scenario,
   onNext,
   onClose,
 }) => {

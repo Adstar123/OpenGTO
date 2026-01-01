@@ -23,15 +23,22 @@ const VISUAL_POSITIONS = [
 // All poker positions in order
 const ALL_POSITIONS: Position[] = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB']
 
-const PokerTable: React.FC<PokerTableProps> = ({ scenario, isAnimating }) => {
+const PokerTable: React.FC<PokerTableProps> = ({ scenario, isAnimating: _isAnimating }) => {
   const [revealedPositions, setRevealedPositions] = useState<Set<Position>>(new Set())
 
   // Calculate position mapping so hero is always at the bottom
-  const positionMapping = useMemo(() => {
-    if (!scenario) return {}
+  const positionMapping = useMemo((): Record<Position, number> => {
+    const mapping: Record<Position, number> = {} as Record<Position, number>
+
+    if (!scenario) {
+      // Default mapping when no scenario
+      ALL_POSITIONS.forEach((pos, idx) => {
+        mapping[pos] = idx
+      })
+      return mapping
+    }
 
     const heroIndex = ALL_POSITIONS.indexOf(scenario.heroPosition)
-    const mapping: Record<Position, number> = {} as Record<Position, number>
 
     for (let i = 0; i < ALL_POSITIONS.length; i++) {
       const pos = ALL_POSITIONS[i]

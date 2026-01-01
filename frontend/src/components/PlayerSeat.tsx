@@ -33,7 +33,7 @@ const ACTION_LABELS: Record<string, string> = {
 
 const PlayerSeat: React.FC<PlayerSeatProps> = ({
   position,
-  player,
+  player: _player,
   action,
   isRevealed,
   isHero,
