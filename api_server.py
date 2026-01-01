@@ -8,6 +8,7 @@ the trained GTO model.
 import sys
 import os
 import json
+import uuid
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -22,6 +23,9 @@ CORS(app)
 
 # Global trainer instance
 trainer = None
+
+# Store scenarios by ID to handle concurrent requests
+scenarios = {}
 
 ACTION_NAMES = ['fold', 'check', 'call', 'bet', 'raise', 'all-in']
 
@@ -71,10 +75,20 @@ def get_scenario():
     try:
         t = get_trainer()
         scenario = t.generate_random_scenario()
-        t._current_scenario = scenario  # Store for evaluate endpoint
+
+        # Generate unique ID for this scenario
+        scenario_id = str(uuid.uuid4())
+        scenarios[scenario_id] = scenario
+
+        # Clean up old scenarios (keep last 100)
+        if len(scenarios) > 100:
+            oldest_keys = list(scenarios.keys())[:-100]
+            for key in oldest_keys:
+                del scenarios[key]
 
         # Convert to JSON-serializable format
         response = {
+            'scenarioId': scenario_id,
             'heroPosition': scenario.hero_position.name,
             'heroCards': {
                 'card1': {
@@ -125,14 +139,15 @@ def evaluate_action():
     try:
         data = request.json
         user_action = data.get('action', '').lower()
+        scenario_id = data.get('scenarioId')
 
         t = get_trainer()
 
-        # Get current scenario state from trainer
-        if not hasattr(t, '_current_scenario') or t._current_scenario is None:
-            return jsonify({'error': 'No active scenario'}), 400
+        # Get scenario by ID
+        if not scenario_id or scenario_id not in scenarios:
+            return jsonify({'error': 'Invalid or expired scenario ID'}), 400
 
-        scenario = t._current_scenario
+        scenario = scenarios[scenario_id]
 
         # Map action to index
         action_map = {
@@ -178,10 +193,20 @@ def new_scenario():
     try:
         t = get_trainer()
         scenario = t.generate_random_scenario()
-        t._current_scenario = scenario
+
+        # Generate unique ID for this scenario
+        scenario_id = str(uuid.uuid4())
+        scenarios[scenario_id] = scenario
+
+        # Clean up old scenarios (keep last 100)
+        if len(scenarios) > 100:
+            oldest_keys = list(scenarios.keys())[:-100]
+            for key in oldest_keys:
+                del scenarios[key]
 
         # Convert to JSON-serializable format
         response = {
+            'scenarioId': scenario_id,
             'heroPosition': scenario.hero_position.name,
             'heroCards': {
                 'card1': {

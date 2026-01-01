@@ -3,8 +3,6 @@ import { motion } from 'framer-motion'
 import Icon from '@mdi/react'
 import { mdiCardsPlayingSpadeMultiple, mdiWindowMinimize, mdiWindowMaximize, mdiClose } from '@mdi/js'
 
-const { ipcRenderer } = window.require('electron')
-
 const TitleBar: React.FC = () => {
   return (
     <div className="title-bar drag-region">
@@ -36,7 +34,7 @@ const TitleBar: React.FC = () => {
       <div className="title-right no-drag">
         <motion.button
           className="window-btn"
-          onClick={() => ipcRenderer.send('window:minimize')}
+          onClick={() => window.electronAPI?.minimize()}
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
           whileTap={{ scale: 0.95 }}
         >
@@ -44,7 +42,7 @@ const TitleBar: React.FC = () => {
         </motion.button>
         <motion.button
           className="window-btn"
-          onClick={() => ipcRenderer.send('window:maximize')}
+          onClick={() => window.electronAPI?.maximize()}
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
           whileTap={{ scale: 0.95 }}
         >
@@ -52,7 +50,7 @@ const TitleBar: React.FC = () => {
         </motion.button>
         <motion.button
           className="window-btn close"
-          onClick={() => ipcRenderer.send('window:close')}
+          onClick={() => window.electronAPI?.close()}
           whileHover={{ backgroundColor: '#ff453a' }}
           whileTap={{ scale: 0.95 }}
         >

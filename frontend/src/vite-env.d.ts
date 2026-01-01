@@ -1,8 +1,7 @@
 /// <reference types="vite/client" />
 
 interface Window {
-  require: NodeRequire
-  electronAPI: {
+  electronAPI?: {
     minimize: () => void
     maximize: () => void
     close: () => void

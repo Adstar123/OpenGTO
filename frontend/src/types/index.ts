@@ -38,6 +38,7 @@ export interface GTOStrategy {
 }
 
 export interface Scenario {
+  scenarioId?: string
   players: Player[]
   heroPosition: Position
   heroCards: HoleCards

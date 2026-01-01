@@ -245,7 +245,7 @@ export async function submitAction(
     const response = await fetch(`${API_BASE}/evaluate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scenario, action }),
+      body: JSON.stringify({ scenarioId: scenario.scenarioId, action }),
     })
     if (!response.ok) throw new Error('Failed to evaluate action')
     return await response.json()
