@@ -1,1 +1,121 @@
-"use strict";const t=require("electron"),i=require("child_process"),r=require("path"),f=require("fs");let e=null,n=null;const c=process.env.VITE_DEV_SERVER_URL,d=!!c;function g(){return d?r.join(__dirname,"../.."):r.join(process.resourcesPath,"backend")}function h(){e=new t.BrowserWindow({width:1500,height:950,minWidth:1200,minHeight:800,frame:!1,transparent:!1,backgroundColor:"#0a0a0f",webPreferences:{preload:r.join(__dirname,"preload.js"),nodeIntegration:!1,contextIsolation:!0},show:!1}),e.once("ready-to-show",()=>{e==null||e.show()}),c?(e.loadURL(c),e.webContents.openDevTools()):e.loadFile(r.join(__dirname,"../dist/index.html")),e.on("closed",()=>{e=null,u()})}function u(){if(n){try{process.platform==="win32"?i.spawn("taskkill",["/pid",String(n.pid),"/f","/t"]):n.kill("SIGTERM")}catch(s){console.error("Error killing Python process:",s)}n=null}}function k(){var l,a;const s=g();if(d){const o="python",p=r.join(s,"api_server.py");console.log("Starting Python backend in dev mode..."),console.log("Script path:",p),console.log("CWD:",s),n=i.spawn(o,[p],{cwd:s,stdio:["pipe","pipe","pipe"]})}else{const o=r.join(s,"opengto_backend.exe");if(console.log("Starting Python backend in production mode..."),console.log("Executable path:",o),!f.existsSync(o)){console.error("Backend executable not found:",o);return}n=i.execFile(o,[],{cwd:s})}(l=n.stdout)==null||l.on("data",o=>{console.log(`Backend: ${o}`)}),(a=n.stderr)==null||a.on("data",o=>{console.error(`Backend Error: ${o}`)}),n.on("close",o=>{console.log(`Backend process exited with code ${o}`)}),n.on("error",o=>{console.error("Failed to start backend:",o)})}t.app.whenReady().then(()=>{k(),setTimeout(h,1e3)});t.app.on("window-all-closed",()=>{u(),process.platform!=="darwin"&&t.app.quit()});t.app.on("activate",()=>{e===null&&h()});t.ipcMain.on("window:minimize",()=>e==null?void 0:e.minimize());t.ipcMain.on("window:maximize",()=>{e!=null&&e.isMaximized()?e.unmaximize():e==null||e.maximize()});t.ipcMain.on("window:close",()=>e==null?void 0:e.close());
+"use strict";
+const electron = require("electron");
+const child_process = require("child_process");
+const path = require("path");
+const fs = require("fs");
+let mainWindow = null;
+let pythonProcess = null;
+const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
+const isDev = !!VITE_DEV_SERVER_URL;
+function getResourcesPath() {
+  if (isDev) {
+    return path.join(__dirname, "../..");
+  }
+  return path.join(process.resourcesPath, "backend");
+}
+function createWindow() {
+  mainWindow = new electron.BrowserWindow({
+    width: 1500,
+    height: 950,
+    minWidth: 1200,
+    minHeight: 800,
+    frame: false,
+    transparent: false,
+    backgroundColor: "#0a0a0f",
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true
+    },
+    show: false
+  });
+  mainWindow.once("ready-to-show", () => {
+    mainWindow == null ? void 0 : mainWindow.show();
+  });
+  if (VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(VITE_DEV_SERVER_URL);
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+  }
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+    killPythonBackend();
+  });
+}
+function killPythonBackend() {
+  if (pythonProcess) {
+    try {
+      if (process.platform === "win32") {
+        child_process.spawn("taskkill", ["/pid", String(pythonProcess.pid), "/f", "/t"]);
+      } else {
+        pythonProcess.kill("SIGTERM");
+      }
+    } catch (e) {
+      console.error("Error killing Python process:", e);
+    }
+    pythonProcess = null;
+  }
+}
+function startPythonBackend() {
+  var _a, _b;
+  const resourcesPath = getResourcesPath();
+  if (isDev) {
+    const pythonPath = "python";
+    const scriptPath = path.join(resourcesPath, "api_server.py");
+    console.log("Starting Python backend in dev mode...");
+    console.log("Script path:", scriptPath);
+    console.log("CWD:", resourcesPath);
+    pythonProcess = child_process.spawn(pythonPath, [scriptPath], {
+      cwd: resourcesPath,
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+  } else {
+    const exePath = path.join(resourcesPath, "opengto_backend.exe");
+    console.log("Starting Python backend in production mode...");
+    console.log("Executable path:", exePath);
+    if (!fs.existsSync(exePath)) {
+      console.error("Backend executable not found:", exePath);
+      return;
+    }
+    pythonProcess = child_process.execFile(exePath, [], {
+      cwd: resourcesPath
+    });
+  }
+  (_a = pythonProcess.stdout) == null ? void 0 : _a.on("data", (data) => {
+    console.log(`Backend: ${data}`);
+  });
+  (_b = pythonProcess.stderr) == null ? void 0 : _b.on("data", (data) => {
+    console.error(`Backend Error: ${data}`);
+  });
+  pythonProcess.on("close", (code) => {
+    console.log(`Backend process exited with code ${code}`);
+  });
+  pythonProcess.on("error", (err) => {
+    console.error("Failed to start backend:", err);
+  });
+}
+electron.app.whenReady().then(() => {
+  startPythonBackend();
+  setTimeout(createWindow, 1e3);
+});
+electron.app.on("window-all-closed", () => {
+  killPythonBackend();
+  if (process.platform !== "darwin") {
+    electron.app.quit();
+  }
+});
+electron.app.on("activate", () => {
+  if (mainWindow === null) {
+    createWindow();
+  }
+});
+electron.ipcMain.on("window:minimize", () => mainWindow == null ? void 0 : mainWindow.minimize());
+electron.ipcMain.on("window:maximize", () => {
+  if (mainWindow == null ? void 0 : mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow == null ? void 0 : mainWindow.maximize();
+  }
+});
+electron.ipcMain.on("window:close", () => mainWindow == null ? void 0 : mainWindow.close());
