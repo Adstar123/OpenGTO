@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import Icon from '@mdi/react'
+import { mdiTarget, mdiChartBoxOutline } from '@mdi/js'
 import TitleBar from './components/TitleBar'
 import PokerTable from './components/PokerTable'
 import ActionPanel from './components/ActionPanel'
@@ -82,7 +84,7 @@ const App: React.FC = () => {
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
           whileTap={{ scale: 0.98 }}
         >
-          <span className="tab-icon">🎯</span>
+          <Icon path={mdiTarget} size={0.75} />
           <span className="tab-label">Trainer</span>
         </motion.button>
         <motion.button
@@ -91,7 +93,7 @@ const App: React.FC = () => {
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
           whileTap={{ scale: 0.98 }}
         >
-          <span className="tab-icon">📊</span>
+          <Icon path={mdiChartBoxOutline} size={0.75} />
           <span className="tab-label">Range Viewer</span>
         </motion.button>
       </div>
@@ -160,6 +162,7 @@ const App: React.FC = () => {
           padding: 8px 20px;
           background: var(--bg-secondary);
           border-bottom: 1px solid var(--border-subtle);
+          flex-shrink: 0;
         }
 
         .nav-tab {
@@ -172,10 +175,7 @@ const App: React.FC = () => {
           border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s ease;
-        }
-
-        .nav-tab .tab-icon {
-          font-size: 16px;
+          color: var(--text-secondary);
         }
 
         .nav-tab .tab-label {
@@ -186,6 +186,7 @@ const App: React.FC = () => {
 
         .nav-tab.active {
           background: var(--bg-tertiary);
+          color: var(--accent-primary);
         }
 
         .nav-tab.active .tab-label {
@@ -215,6 +216,7 @@ const App: React.FC = () => {
           flex-direction: column;
           gap: 16px;
           min-width: 0;
+          min-height: 0;
         }
       `}</style>
     </div>

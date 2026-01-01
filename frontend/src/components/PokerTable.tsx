@@ -229,24 +229,29 @@ const PokerTable: React.FC<PokerTableProps> = ({ scenario, isAnimating }) => {
           display: flex;
           flex-direction: column;
           align-items: center;
-          padding: 8px 24px;
-          background: rgba(0, 0, 0, 0.6);
-          border-radius: 14px;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          padding: 12px 32px;
+          background: rgba(0, 0, 0, 0.85);
+          border-radius: 16px;
+          border: 2px solid rgba(212, 175, 55, 0.4);
+          box-shadow:
+            0 4px 20px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .pot-label {
-          font-size: 9px;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.5);
+          font-size: 10px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.6);
           letter-spacing: 0.15em;
+          text-transform: uppercase;
         }
 
         .pot-amount {
-          font-size: 18px;
-          font-weight: 700;
+          font-size: 24px;
+          font-weight: 800;
           color: var(--accent-primary);
           font-family: var(--font-mono);
+          text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
         }
 
         .hero-cards-wrapper {
