@@ -12,7 +12,20 @@ import uuid
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def get_base_path():
+    """Get the base path for resources, handling both dev and PyInstaller bundled modes."""
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller bundle
+        return sys._MEIPASS
+    else:
+        # Running in development
+        return os.path.dirname(os.path.abspath(__file__))
+
+
+# Set up paths for both development and bundled modes
+BASE_PATH = get_base_path()
+sys.path.insert(0, BASE_PATH)
 
 from src.trainer_interface import GTOTrainerInterface, ACTION_NAMES as TRAINER_ACTION_NAMES
 from src.game_state import Position
@@ -35,8 +48,13 @@ def get_trainer():
     """Get or initialize the trainer."""
     global trainer
     if trainer is None:
-        # Find best checkpoint
-        checkpoint_dirs = ['checkpoints_improved', 'checkpoints']
+        # Find best checkpoint - look in BASE_PATH for bundled mode
+        checkpoint_dirs = [
+            os.path.join(BASE_PATH, 'checkpoints_improved'),
+            os.path.join(BASE_PATH, 'checkpoints'),
+            'checkpoints_improved',  # Fallback for development
+            'checkpoints',
+        ]
         checkpoint_path = None
 
         for cdir in checkpoint_dirs:
@@ -51,7 +69,10 @@ def get_trainer():
                     break
 
         if checkpoint_path is None:
-            raise RuntimeError("No checkpoint found")
+            raise RuntimeError(f"No checkpoint found. Searched: {checkpoint_dirs}")
+
+        print(f"BASE_PATH: {BASE_PATH}")
+        print(f"Looking for checkpoint at: {checkpoint_path}")
 
         trainer = GTOTrainerInterface(
             checkpoint_path=checkpoint_path,

@@ -1,11 +1,21 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, ChildProcess, execFile } from 'child_process'
 import path from 'path'
+import fs from 'fs'
 
 let mainWindow: BrowserWindow | null = null
 let pythonProcess: ChildProcess | null = null
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
+const isDev = !!VITE_DEV_SERVER_URL
+
+function getResourcesPath(): string {
+  if (isDev) {
+    return path.join(__dirname, '../..')
+  }
+  // In production, resources are in the app.asar.unpacked or extraResources
+  return path.join(process.resourcesPath, 'backend')
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -38,31 +48,73 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null
-    if (pythonProcess) {
-      pythonProcess.kill()
-    }
+    killPythonBackend()
   })
 }
 
-function startPythonBackend() {
-  const pythonPath = 'python'
-  const scriptPath = path.join(__dirname, '../../api_server.py')
+function killPythonBackend() {
+  if (pythonProcess) {
+    try {
+      // On Windows, we need to kill the process tree
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', String(pythonProcess.pid), '/f', '/t'])
+      } else {
+        pythonProcess.kill('SIGTERM')
+      }
+    } catch (e) {
+      console.error('Error killing Python process:', e)
+    }
+    pythonProcess = null
+  }
+}
 
-  pythonProcess = spawn(pythonPath, [scriptPath], {
-    cwd: path.join(__dirname, '../..'),
-    stdio: ['pipe', 'pipe', 'pipe'],
-  })
+function startPythonBackend() {
+  const resourcesPath = getResourcesPath()
+
+  if (isDev) {
+    // Development mode: run Python directly
+    const pythonPath = 'python'
+    const scriptPath = path.join(resourcesPath, 'api_server.py')
+
+    console.log('Starting Python backend in dev mode...')
+    console.log('Script path:', scriptPath)
+    console.log('CWD:', resourcesPath)
+
+    pythonProcess = spawn(pythonPath, [scriptPath], {
+      cwd: resourcesPath,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+  } else {
+    // Production mode: run the bundled executable
+    const exePath = path.join(resourcesPath, 'opengto_backend.exe')
+
+    console.log('Starting Python backend in production mode...')
+    console.log('Executable path:', exePath)
+
+    if (!fs.existsSync(exePath)) {
+      console.error('Backend executable not found:', exePath)
+      return
+    }
+
+    pythonProcess = execFile(exePath, [], {
+      cwd: resourcesPath,
+    })
+  }
 
   pythonProcess.stdout?.on('data', (data) => {
-    console.log(`Python: ${data}`)
+    console.log(`Backend: ${data}`)
   })
 
   pythonProcess.stderr?.on('data', (data) => {
-    console.error(`Python Error: ${data}`)
+    console.error(`Backend Error: ${data}`)
   })
 
   pythonProcess.on('close', (code) => {
-    console.log(`Python process exited with code ${code}`)
+    console.log(`Backend process exited with code ${code}`)
+  })
+
+  pythonProcess.on('error', (err) => {
+    console.error('Failed to start backend:', err)
   })
 }
 
@@ -72,9 +124,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
-  if (pythonProcess) {
-    pythonProcess.kill()
-  }
+  killPythonBackend()
   if (process.platform !== 'darwin') {
     app.quit()
   }

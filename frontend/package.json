@@ -10,6 +10,45 @@
     "electron:dev": "concurrently \"vite\" \"electron .\"",
     "start": "electron ."
   },
+  "build": {
+    "appId": "com.opengto.trainer",
+    "productName": "OpenGTO",
+    "directories": {
+      "output": "dist-electron-builder"
+    },
+    "extraResources": [
+      {
+        "from": "../dist-python/opengto_backend.exe",
+        "to": "backend/opengto_backend.exe"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "OpenGTO"
+    },
+    "mac": {
+      "icon": "build/icon.icns",
+      "target": "dmg"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": "AppImage"
+    }
+  },
   "dependencies": {
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",

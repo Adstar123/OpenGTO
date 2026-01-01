@@ -1,0 +1,109 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install flask flask-cors numpy pyinstaller
+
+      - name: Build Python backend
+        run: |
+          pyinstaller --distpath dist-python --workpath build-python --clean opengto_backend.spec
+
+      - name: Verify Python build
+        run: |
+          if (!(Test-Path "dist-python/opengto_backend.exe")) {
+            Write-Error "Python backend build failed - executable not found"
+            exit 1
+          }
+          $size = (Get-Item "dist-python/opengto_backend.exe").Length / 1MB
+          Write-Host "Backend executable size: $([math]::Round($size, 2)) MB"
+        shell: pwsh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Electron app
+        working-directory: frontend
+        run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenGTO-Windows-Installer
+          path: frontend/dist-electron-builder/*.exe
+          if-no-files-found: error
+
+  release:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: OpenGTO-Windows-Installer
+          path: installers
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: OpenGTO ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: installers/*.exe
+          body: |
+            ## OpenGTO ${{ github.ref_name }}
+
+            ### Installation
+            1. Download `OpenGTO-Setup-*.exe` below
+            2. Run the installer
+            3. Choose your installation directory
+            4. Launch OpenGTO from the Start Menu or Desktop shortcut
+
+            ### What's Included
+            - Complete GTO Poker Trainer application
+            - Pre-trained neural network model
+            - No Python installation required
+
+            ### System Requirements
+            - Windows 10/11 (64-bit)
+            - 4GB RAM minimum
+            - 500MB disk space
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
