@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python trainer_cli.py:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

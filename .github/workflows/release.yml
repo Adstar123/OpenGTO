@@ -55,17 +55,23 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Build TypeScript and Vite
+        working-directory: frontend
+        run: |
+          npx tsc
+          npx vite build
+
       - name: Build Electron app
         working-directory: frontend
-        run: npm run build
+        run: npx electron-builder --win --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload installer artifact
+      - name: Upload zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OpenGTO-Windows-Installer
-          path: frontend/dist-electron-builder/*.exe
+          name: OpenGTO-Windows
+          path: frontend/dist-electron-builder/*.zip
           if-no-files-found: error
 
   release:
@@ -77,8 +83,8 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: OpenGTO-Windows-Installer
-          path: installers
+          name: OpenGTO-Windows
+          path: release-files
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -86,15 +92,14 @@ jobs:
           name: OpenGTO ${{ github.ref_name }}
           draft: false
           prerelease: false
-          files: installers/*.exe
+          files: release-files/*.zip
           body: |
             ## OpenGTO ${{ github.ref_name }}
 
             ### Installation
-            1. Download `OpenGTO-Setup-*.exe` below
-            2. Run the installer
-            3. Choose your installation directory
-            4. Launch OpenGTO from the Start Menu or Desktop shortcut
+            1. Download `OpenGTO-*-win.zip` below
+            2. Extract the zip file to your desired location
+            3. Run `OpenGTO.exe` from the extracted folder
 
             ### What's Included
             - Complete GTO Poker Trainer application
@@ -104,6 +109,6 @@ jobs:
             ### System Requirements
             - Windows 10/11 (64-bit)
             - 4GB RAM minimum
-            - 500MB disk space
+            - 3GB disk space (for extracted files)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

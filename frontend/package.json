@@ -2,6 +2,11 @@
   "name": "opengto-trainer",
   "version": "1.0.0",
   "description": "Beautiful GTO Poker Trainer",
+  "author": "OpenGTO Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Adstar123/OpenGTO"
+  },
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -42,6 +47,11 @@
     "linux": {
       "icon": "build/icon.png",
       "target": "AppImage"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Adstar123",
+      "repo": "OpenGTO"
     }
   },
   "dependencies": {
