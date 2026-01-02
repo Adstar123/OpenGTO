@@ -2,6 +2,22 @@
 
 A preflop poker trainer that uses neural networks trained with Deep Counterfactual Regret Minimisation to teach Game Theory Optimal (GTO) play.
 
+## Screenshots
+
+### Training Mode
+Practice preflop decisions with randomly generated scenarios:
+
+![Trainer Scenario](screenshots/trainer-scenario.png)
+
+After making your choice, see the GTO-recommended action:
+
+![Trainer Result](screenshots/trainer-result.png)
+
+### Range Viewer
+Visualise optimal strategies across all 169 starting hands for any position and opponent action sequence:
+
+![Range Viewer](screenshots/range-viewer.png)
+
 ## Features
 
 - **GTO Strategy Training**: Learn optimal preflop decisions based on position and opponent actions
